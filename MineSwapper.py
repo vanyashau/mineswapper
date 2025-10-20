@@ -1,141 +1,87 @@
 import random
-import pygame  
-pygame.init()  
 
-class EmptyCell:
-    """Родительский класс где определяються методы для дочерних"""
+class Battlefield:
+    def __init__(self, min_side=5, max_side=10):
+        self.__matrix = None
+        self.__size_limits = [min_side, max_side]
+        self.__size = 0
+        self.__bombs_count = 0
+
+    @property
+    def matrix(self):
+        return self.__matrix
+    
+    @property
+    def size(self):
+        return self.__size
+    
+    @property
+    def bombs_count(self):
+        return self.__bombs_count
+
+    def restart(self):
+        '''Создание матрицы случайного размера от min_side до max_side'''
+        self.__matrix = None
+        self.__size = random.randint(self.__size_limits[0], self.__size_limits[1])
+        self.__bombs_count = self.__size + 1
+        self.__matrix = [[Cell(Cell.TYPE_EMPTY) for _ in range(self.__size)] for _ in range(self.__size)]
+
+        self.__bombs_coordinats = []
+        self.__attemps = 0
+        if self.__attemps < 1000:
+            for x in random.randint(0, self.__size):
+                for y in random.randint(0, self.__size):
+                    if len(self.__bombs_coordinats) != 0:
+                        if f'{x},{y}' in self.__bombs_coordinats:
+                            continue
+                        for z in range(len(self.__bombs_coordinats)):
+                            if abs(x - int(self.__bombs_coordinats[z][0])) < 1 and abs(y - int(self.__bombs_coordinats[z][2])) < 1:
+                                continue
+                    self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
+                    self.__bombs_coordinats.append(f'{x},{y}')
+                    self.__bombs_count -= 1
+
+
+        for x in range(self.__size):
+            for y in range(self.__size):
+                if f'{x},{y}' not in self.__bombs_coordinats and self.__bombs_count != 0:
+                    self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
+                    self.__bombs_count -= 1
+        if self.__bombs_count != 0:
+            self.__matrix[0][self.__size - 1] = Cell(Cell.TYPE_BOMB)
+
+class Cell:
+    TYPE_EMPTY = 0
+    TYPE_BOMB = 1
+
+    STATE_FLAGGED = 2
+    STATE_OPENED = 1
+    STATE_CLOSED = 0
 
     def __init__(self):
-        self.opened = False
-        self.flagged = False
-        self.bombed = False
+        self.__type = type
+        self.__state = Cell.STATE_CLOSED
         self.bombs_around = 0
 
-    def is_open(self):
-        return self.opened
+    @property
+    def type(self):
+        if self.__type == 0:
+            return 'EMPTY'
+        return 'BOMB' 
+
+    @property
+    def state(self):
+        if self.__state == 0:
+            return 'CLOSE'
+        elif self.__state == 1:
+            return 'OPEN'
+        return 'FLAG'
 
     def open(self):
-        self.opened = True
+        self.__state = Cell.STATE_OPENED
 
-    def toggle_flag(self):
-        self.flagged = not self.flagged
+    def close(self):
+        self.__state = Cell.STATE_CLOSED
 
-    def is_bomb(self):
-        return False
-    
-    def add_bomb_around(self):
-        self.bombs_around += 1
-
-class BorderCell(EmptyCell):
-    """Класс клетки граничущей с бомбами"""
-    def __init__(self, bombs_around):
-        super().__init__()
-        self.bombs_around = bombs_around
-
-class SafetyCell(EmptyCell):
-    """Класс клетки неграничющей с бомбой и ею не являющейся"""
-    def __init__(self):
-        super().__init__()
-
-class BombCell(EmptyCell):
-    """Класс непосредственно бомбы"""
-    def is_bomb(self):
-        return True
-    
-def create_matrix(side):
-    count_of_bombs = side + 1
-    matrix = [[False for _ in range(side)] for _ in range(side)]
-    coordinats = []
-    attempts = 0
-
-    while len(coordinats) < count_of_bombs and attempts < 1000:
-        x = random.randint(0, side - 1)
-        y = random.randint(0, side - 1)
-
-        if (x, y) in coordinats:
-            attempts += 1
-            continue
-
-        too_close = False
-        for selested_x, selested_y in coordinats:
-            if abs(x - selested_x) <= 1 and abs(y - selested_y) <= 1:
-                too_close = True
-                break
-
-        if too_close:
-            attempts += 1
-            continue
-
-        coordinats.append((x, y))
-        matrix[x][y] = True
-        attempts = 0
-
-    while len(coordinats) < count_of_bombs:
-        x = random.randint(0, side - 1)
-        y = random.randint(0, side - 1)
-        if (x, y) not in coordinats:
-            coordinats.append((x, y))
-            matrix[x][y] = True
-    return matrix
-
-def create_field(matrix, side):
-    for x in range(side):
-        for y in range(side):
-            if matrix[x][y]:
-                matrix[x][y] = BombCell()
-            else:
-                matrix[x][y] = EmptyCell()
-
-    for x in range(side):
-        for y in range(side):
-            if matrix[x][y].is_bomb():
-                if x > 0 and y > 0 and x < 9 and y < 9:
-                    matrix[x-1][y-1].add_bomb_around()
-                    matrix[x-1][y].add_bomb_around()
-                    matrix[x-1][y+1].add_bomb_around()
-                    matrix[x][y-1].add_bomb_around()
-                    matrix[x][y+1].add_bomb_around()
-                    matrix[x+1][y-1].add_bomb_around()
-                    matrix[x+1][y].add_bomb_around()
-                    matrix[x+1][y+1].add_bomb_around()
-                elif x == 0 and y == 0:                                                                         
-                    matrix[x][y+1].add_bomb_around()
-                    matrix[x+1][y].add_bomb_around()
-                    matrix[x+1][y+1].add_bomb_around()
-                elif x == 0 and y != 0 and y != 9:
-                    matrix[x][y-1].add_bomb_around()
-                    matrix[x][y+1].add_bomb_around()
-                    matrix[x+1][y-1].add_bomb_around()
-                    matrix[x+1][y].add_bomb_around()
-                    matrix[x+1][y+1].add_bomb_around()
-                elif x == 0 and y == 9:
-                    matrix[x][y-1].add_bomb_around()
-                    matrix[x+1][y-1].add_bomb_around()
-                    matrix[x+1][y].add_bomb_around()
-                elif x != 0 and x != 9 and y == 0:
-                    matrix[x-1][y].add_bomb_around()
-                    matrix[x-1][y+1].add_bomb_around()
-                    matrix[x][y+1].add_bomb_around()
-                    matrix[x+1][y].add_bomb_around()
-                    matrix[x+1][y+1].add_bomb_around()
-                elif x == 9 and y == 9:
-                    matrix[x-1][y-1].add_bomb_around()
-                    matrix[x-1][y].add_bomb_around()
-                    matrix[x][y-1].add_bomb_around()
-                elif x == 9 and y == 0:
-                    matrix[x-1][y].add_bomb_around()
-                    matrix[x-1][y+1].add_bomb_around()
-                    matrix[x][y+1].add_bomb_around()
-                elif x == 9 and y != 0 and y != 9:
-                    matrix[x-1][y-1].add_bomb_around()
-                    matrix[x-1][y].add_bomb_around()
-                    matrix[x-1][y+1].add_bomb_around()
-                    matrix[x][y-1].add_bomb_around()
-                    matrix[x][y+1].add_bomb_around()
-                elif x != 9 and x != 0 and y == 9:
-                    matrix[x-1][y-1].add_bomb_around()
-                    matrix[x-1][y].add_bomb_around()
-                    matrix[x][y-1].add_bomb_around()
-                    matrix[x+1][y-1].add_bomb_around()
-                    matrix[x+1][y].add_bomb_around()
-    return matrix
+    def set_flag(self):
+        self.__state = Cell.STATE_FLAGGED
