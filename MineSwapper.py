@@ -1,4 +1,5 @@
 import random
+import math
 
 class Battlefield:
     def __init__(self, min_side=5, max_side=10):
@@ -10,11 +11,11 @@ class Battlefield:
     @property
     def matrix(self):
         return self.__matrix
-    
+
     @property
     def size(self):
         return self.__size
-    
+
     @property
     def bombs_count(self):
         return self.__bombs_count
@@ -23,34 +24,32 @@ class Battlefield:
         '''Создание матрицы случайного размера от min_side до max_side'''
         self.__matrix = None
         self.__size = random.randint(self.__size_limits[0], self.__size_limits[1])
-        self.__bombs_count = self.__size + 1
+        self.__bombs_count =  math.floor(self.__size**2 * 0.18)
         self.__matrix = [[Cell(Cell.TYPE_EMPTY) for _ in range(self.__size)] for _ in range(self.__size)]
 
-        self.__bombs_coordinats = []
-        self.__attemps = 0
-        while self.__attemps < 1000:
+        bombs_to_place = self.__bombs_count
+
+        failed_attemps = 0
+        while failed_attemps < 1000 and bombs_to_place > 0:
             x = random.randint(0, self.__size - 1)
             y = random.randint(0, self.__size - 1)
-            if len(self.__bombs_coordinats) != 0:
-                if f'{x},{y}' in self.__bombs_coordinats:
-                    self.__attemps += 1
-                    continue
-                for z in range(len(self.__bombs_coordinats)):
-                    if abs(x - int(self.__bombs_coordinats[z][0])) < 1 and abs(y - int(self.__bombs_coordinats[z][2])) < 1:
-                        self.__attemps += 1
-                        continue
+            if self.__matrix[x][y].type == Cell.TYPE_BOMB:
+                failed_attemps += 1
+                continue
             self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
-            self.__bombs_coordinats.append(f'{x},{y}')
-            self.__bombs_count -= 1
+            bombs_to_place -= 1
 
+        if bombs_to_place > 0:
+            for x in range(self.__size):
+                for y in range(self.__size):
+                    if self.__matrix[x][y].type == Cell.TYPE_EMPTY and bombs_to_place > 0:
+                        self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
+                        bombs_to_place -= 1
+                        if bombs_to_place == 0:
+                            break
+                if bombs_to_place == 0:
+                    break
 
-        for x in range(self.__size):
-            for y in range(self.__size):
-                if f'{x},{y}' not in self.__bombs_coordinats and self.__bombs_count != 0:
-                    self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
-                    self.__bombs_count -= 1
-        if self.__bombs_count != 0:
-            self.__matrix[0][self.__size - 1] = Cell(Cell.TYPE_BOMB)
 
         return self.__matrix
 
@@ -58,9 +57,9 @@ class Cell:
     TYPE_EMPTY = 0
     TYPE_BOMB = 1
 
-    STATE_FLAGGED = 2
-    STATE_OPENED = 1
     STATE_CLOSED = 0
+    STATE_OPENED = 1
+    STATE_FLAGGED = 2
 
     def __init__(self, type):
         self.__type = type
@@ -69,17 +68,16 @@ class Cell:
 
     @property
     def type(self):
-        if self.__type == 0:
-            return 'EMPTY'
-        return 'BOMB' 
+        return self.__type
 
     @property
     def state(self):
-        if self.__state == 0:
-            return 'CLOSE'
-        elif self.__state == 1:
-            return 'OPEN'
-        return 'FLAG'
+        return self.__state
+
+    def __repr__(self):
+        if self.__type == 0:
+            return 'EMPTY'
+        return 'BOMB'
 
     def open(self):
         if self.__state != Cell.STATE_FLAGGED:
