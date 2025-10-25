@@ -28,18 +28,20 @@ class Battlefield:
 
         self.__bombs_coordinats = []
         self.__attemps = 0
-        if self.__attemps < 1000:
-            for x in random.randint(0, self.__size):
-                for y in random.randint(0, self.__size):
-                    if len(self.__bombs_coordinats) != 0:
-                        if f'{x},{y}' in self.__bombs_coordinats:
-                            continue
-                        for z in range(len(self.__bombs_coordinats)):
-                            if abs(x - int(self.__bombs_coordinats[z][0])) < 1 and abs(y - int(self.__bombs_coordinats[z][2])) < 1:
-                                continue
-                    self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
-                    self.__bombs_coordinats.append(f'{x},{y}')
-                    self.__bombs_count -= 1
+        while self.__attemps < 1000:
+            x = random.randint(0, self.__size - 1)
+            y = random.randint(0, self.__size - 1)
+            if len(self.__bombs_coordinats) != 0:
+                if f'{x},{y}' in self.__bombs_coordinats:
+                    self.__attemps += 1
+                    continue
+                for z in range(len(self.__bombs_coordinats)):
+                    if abs(x - int(self.__bombs_coordinats[z][0])) < 1 and abs(y - int(self.__bombs_coordinats[z][2])) < 1:
+                        self.__attemps += 1
+                        continue
+            self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
+            self.__bombs_coordinats.append(f'{x},{y}')
+            self.__bombs_count -= 1
 
 
         for x in range(self.__size):
@@ -50,6 +52,8 @@ class Battlefield:
         if self.__bombs_count != 0:
             self.__matrix[0][self.__size - 1] = Cell(Cell.TYPE_BOMB)
 
+        return self.__matrix
+
 class Cell:
     TYPE_EMPTY = 0
     TYPE_BOMB = 1
@@ -58,7 +62,7 @@ class Cell:
     STATE_OPENED = 1
     STATE_CLOSED = 0
 
-    def __init__(self):
+    def __init__(self, type):
         self.__type = type
         self.__state = Cell.STATE_CLOSED
         self.bombs_around = 0
@@ -78,10 +82,12 @@ class Cell:
         return 'FLAG'
 
     def open(self):
-        self.__state = Cell.STATE_OPENED
-
-    def close(self):
-        self.__state = Cell.STATE_CLOSED
+        if self.__state != Cell.STATE_FLAGGED:
+            self.__state = Cell.STATE_OPENED
 
     def set_flag(self):
         self.__state = Cell.STATE_FLAGGED
+
+a = Battlefield()
+b = a.restart()
+print(b)
