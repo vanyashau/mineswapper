@@ -1,5 +1,8 @@
 import random
 import math
+import pygame
+pygame.init()
+
 
 class Battlefield:
     def __init__(self, min_side=5, max_side=10):
@@ -27,6 +30,7 @@ class Battlefield:
         self.__bombs_count =  math.floor(self.__size**2 * 0.18)
         self.__matrix = [[Cell(Cell.TYPE_EMPTY) for _ in range(self.__size)] for _ in range(self.__size)]
 
+        bombs_list = []
         bombs_to_place = self.__bombs_count
 
         failed_attemps = 0
@@ -37,6 +41,7 @@ class Battlefield:
                 failed_attemps += 1
                 continue
             self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
+            bombs_list.append([x, y])
             bombs_to_place -= 1
 
         if bombs_to_place > 0:
@@ -44,14 +49,66 @@ class Battlefield:
                 for y in range(self.__size):
                     if self.__matrix[x][y].type == Cell.TYPE_EMPTY and bombs_to_place > 0:
                         self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
+                        bombs_list.append([x, y])
                         bombs_to_place -= 1
                         if bombs_to_place == 0:
                             break
                 if bombs_to_place == 0:
                     break
 
+        for bomb_coordinats in bombs_list:
+            x = bomb_coordinats[0]
+            y = bomb_coordinats[1]
+            if x > 0 and y > 0 and x < self.__size - 1 and y < self.__size - 1:
+                self.__matrix[x-1][y-1].add_bomb_near()
+                self.__matrix[x-1][y].add_bomb_near()
+                self.__matrix[x-1][y+1].add_bomb_near()
+                self.__matrix[x][y-1].add_bomb_near()
+                self.__matrix[x][y+1].add_bomb_near()
+                self.__matrix[x+1][y-1].add_bomb_near()
+                self.__matrix[x+1][y].add_bomb_near()
+                self.__matrix[x+1][y+1].add_bomb_near()
+            elif x == 0 and y == 0:                                                                         
+                self.__matrix[x][y+1].add_bomb_near()
+                self.__matrix[x+1][y].add_bomb_near()
+                self.__matrix[x+1][y+1].add_bomb_near()
+            elif x == 0 and y != 0 and y != self.__size - 1:
+                self.__matrix[x][y-1].add_bomb_near()
+                self.__matrix[x][y+1].add_bomb_near()
+                self.__matrix[x+1][y-1].add_bomb_near()
+                self.__matrix[x+1][y].add_bomb_near()
+                self.__matrix[x+1][y+1].add_bomb_near()
+            elif x == 0 and y == self.__size - 1:
+                self.__matrix[x][y-1].add_bomb_near()
+                self.__matrix[x+1][y-1].add_bomb_near()
+                self.__matrix[x+1][y].add_bomb_near()
+            elif x != 0 and x != self.__size - 1 and y == 0:
+                self.__matrix[x-1][y].add_bomb_near()
+                self.__matrix[x-1][y+1].add_bomb_near()
+                self.__matrix[x][y+1].add_bomb_near()
+                self.__matrix[x+1][y].add_bomb_near()
+                self.__matrix[x+1][y+1].add_bomb_near()
+            elif x == self.__size - 1 and y == self.__size - 1:
+                self.__matrix[x-1][y-1].add_bomb_near()
+                self.__matrix[x-1][y].add_bomb_near()
+                self.__matrix[x][y-1].add_bomb_near()
+            elif x == self.__size - 1 and y == 0:
+                self.__matrix[x-1][y].add_bomb_near()
+                self.__matrix[x-1][y+1].add_bomb_near()
+                self.__matrix[x][y+1].add_bomb_near()
+            elif x == self.__size - 1 and y != 0 and y != self.__size - 1:
+                self.__matrix[x-1][y-1].add_bomb_near()
+                self.__matrix[x-1][y].add_bomb_near()
+                self.__matrix[x-1][y+1].add_bomb_near()
+                self.__matrix[x][y-1].add_bomb_near()
+                self.__matrix[x][y+1].add_bomb_near()
+            elif x != self.__size - 1 and x != 0 and y == self.__size - 1:
+                self.__matrix[x-1][y-1].add_bomb_near()
+                self.__matrix[x-1][y].add_bomb_near()
+                self.__matrix[x][y-1].add_bomb_near()
+                self.__matrix[x+1][y-1].add_bomb_near()
+                self.__matrix[x+1][y].add_bomb_near()
 
-        return self.__matrix
 
 class Cell:
     TYPE_EMPTY = 0
@@ -64,7 +121,7 @@ class Cell:
     def __init__(self, type):
         self.__type = type
         self.__state = Cell.STATE_CLOSED
-        self.bombs_around = 0
+        self.__bombs_near = 0
 
     @property
     def type(self):
@@ -74,10 +131,14 @@ class Cell:
     def state(self):
         return self.__state
 
+    @property
+    def bombs_near(self):
+        return self.__bombs_near
+
     def __repr__(self):
         if self.__type == 0:
-            return 'EMPTY'
-        return 'BOMB'
+            return f'{self.__bombs_near}'
+        return '*'
 
     def open(self):
         if self.__state != Cell.STATE_FLAGGED:
@@ -86,6 +147,17 @@ class Cell:
     def set_flag(self):
         self.__state = Cell.STATE_FLAGGED
 
+    def add_bomb_near(self):
+        self.__bombs_near += 1
+
+    def get_image(self):
+        return pygame.image.load(f'items/mine_near_{self.__bombs_near}')
+
 a = Battlefield()
-b = a.restart()
-print(b)
+a.restart()
+b = a.matrix
+
+for x in range(len(b)):
+    for y in range(len(b[x])):  
+        print(b[x][y], end=' ')
+    print()
