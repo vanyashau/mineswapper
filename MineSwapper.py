@@ -3,6 +3,15 @@ import math
 import pygame
 pygame.init()
 
+MIN_SIDE_LENGHT = 5
+MAX_SIDE_LENGHT = 10
+
+def draw_field(scene, size, side, interface_line):
+    for x in range(size):
+        for y in range(size):
+            image = pygame.transform.scale(pygame.image.load('items/close_cell.png'), (side, side))
+            scene.blit(image, (side * x, side * y + interface_line))
+    pygame.display.update()
 
 class Battlefield:
     def __init__(self, min_side=5, max_side=10):
@@ -42,6 +51,30 @@ class Battlefield:
                 continue
             self.__matrix[x][y] = Cell(Cell.TYPE_BOMB)
             bombs_list.append([x, y])
+            if x - 1 >= 0 and x - 1 <= self.__size - 1 and y - 1 >= 0 and y - 1 <= self.__size - 1:
+                self.__matrix[x-1][y-1].increase_bomb_around()
+
+            if x - 1 >= 0 and x - 1 <= self.__size - 1 and y >= 0 and y <= self.__size - 1:
+                self.__matrix[x-1][y].increase_bomb_around()
+
+            if x - 1 >= 0 and x - 1 <= self.__size - 1 and y + 1 >= 0 and y + 1 <= self.__size - 1:
+                self.__matrix[x-1][y+1].increase_bomb_around()
+
+            if x >= 0 and x <= self.__size - 1 and y - 1 >= 0 and y - 1 <= self.__size - 1:
+                self.__matrix[x][y-1].increase_bomb_around()
+
+            if x >= 0 and x <= self.__size - 1 and y + 1 >= 0 and y + 1 <= self.__size - 1:
+                self.__matrix[x][y+1].increase_bomb_around()
+
+            if x + 1 >= 0 and x + 1 <= self.__size - 1 and y - 1 >= 0 and y - 1 <= self.__size - 1:
+                self.__matrix[x+1][y-1].increase_bomb_around()
+
+            if x + 1 >= 0 and x + 1 <= self.__size - 1 and y >= 0 and y <= self.__size - 1:
+                self.__matrix[x+1][y].increase_bomb_around()
+            
+            if x + 1 >= 0 and x + 1 <= self.__size - 1 and y + 1 >= 0 and y + 1 <= self.__size - 1:
+                self.__matrix[x+1][y+1].increase_bomb_around()
+
             bombs_to_place -= 1
 
         if bombs_to_place > 0:
@@ -56,59 +89,6 @@ class Battlefield:
                 if bombs_to_place == 0:
                     break
 
-        for bomb_coordinats in bombs_list:
-            x = bomb_coordinats[0]
-            y = bomb_coordinats[1]
-            if x > 0 and y > 0 and x < self.__size - 1 and y < self.__size - 1:
-                self.__matrix[x-1][y-1].add_bomb_near()
-                self.__matrix[x-1][y].add_bomb_near()
-                self.__matrix[x-1][y+1].add_bomb_near()
-                self.__matrix[x][y-1].add_bomb_near()
-                self.__matrix[x][y+1].add_bomb_near()
-                self.__matrix[x+1][y-1].add_bomb_near()
-                self.__matrix[x+1][y].add_bomb_near()
-                self.__matrix[x+1][y+1].add_bomb_near()
-            elif x == 0 and y == 0:                                                                         
-                self.__matrix[x][y+1].add_bomb_near()
-                self.__matrix[x+1][y].add_bomb_near()
-                self.__matrix[x+1][y+1].add_bomb_near()
-            elif x == 0 and y != 0 and y != self.__size - 1:
-                self.__matrix[x][y-1].add_bomb_near()
-                self.__matrix[x][y+1].add_bomb_near()
-                self.__matrix[x+1][y-1].add_bomb_near()
-                self.__matrix[x+1][y].add_bomb_near()
-                self.__matrix[x+1][y+1].add_bomb_near()
-            elif x == 0 and y == self.__size - 1:
-                self.__matrix[x][y-1].add_bomb_near()
-                self.__matrix[x+1][y-1].add_bomb_near()
-                self.__matrix[x+1][y].add_bomb_near()
-            elif x != 0 and x != self.__size - 1 and y == 0:
-                self.__matrix[x-1][y].add_bomb_near()
-                self.__matrix[x-1][y+1].add_bomb_near()
-                self.__matrix[x][y+1].add_bomb_near()
-                self.__matrix[x+1][y].add_bomb_near()
-                self.__matrix[x+1][y+1].add_bomb_near()
-            elif x == self.__size - 1 and y == self.__size - 1:
-                self.__matrix[x-1][y-1].add_bomb_near()
-                self.__matrix[x-1][y].add_bomb_near()
-                self.__matrix[x][y-1].add_bomb_near()
-            elif x == self.__size - 1 and y == 0:
-                self.__matrix[x-1][y].add_bomb_near()
-                self.__matrix[x-1][y+1].add_bomb_near()
-                self.__matrix[x][y+1].add_bomb_near()
-            elif x == self.__size - 1 and y != 0 and y != self.__size - 1:
-                self.__matrix[x-1][y-1].add_bomb_near()
-                self.__matrix[x-1][y].add_bomb_near()
-                self.__matrix[x-1][y+1].add_bomb_near()
-                self.__matrix[x][y-1].add_bomb_near()
-                self.__matrix[x][y+1].add_bomb_near()
-            elif x != self.__size - 1 and x != 0 and y == self.__size - 1:
-                self.__matrix[x-1][y-1].add_bomb_near()
-                self.__matrix[x-1][y].add_bomb_near()
-                self.__matrix[x][y-1].add_bomb_near()
-                self.__matrix[x+1][y-1].add_bomb_near()
-                self.__matrix[x+1][y].add_bomb_near()
-
 
 class Cell:
     TYPE_EMPTY = 0
@@ -121,7 +101,7 @@ class Cell:
     def __init__(self, type):
         self.__type = type
         self.__state = Cell.STATE_CLOSED
-        self.__bombs_near = 0
+        self.__bombs_around = 0
 
     @property
     def type(self):
@@ -132,12 +112,12 @@ class Cell:
         return self.__state
 
     @property
-    def bombs_near(self):
-        return self.__bombs_near
+    def bombs_around(self):
+        return self.__bombs_around
 
     def __repr__(self):
         if self.__type == 0:
-            return f'{self.__bombs_near}'
+            return f'{self.__bombs_around}'
         return '*'
 
     def open(self):
@@ -147,17 +127,39 @@ class Cell:
     def set_flag(self):
         self.__state = Cell.STATE_FLAGGED
 
-    def add_bomb_near(self):
-        self.__bombs_near += 1
+    def increase_bomb_around(self):
+        self.__bombs_around += 1
 
     def get_image(self):
-        return pygame.image.load(f'items/mine_near_{self.__bombs_near}')
+        return pygame.image.load(f'items/mine_near_{self.__bombs_around}.png')
 
-a = Battlefield()
+
+
+a = Battlefield(MIN_SIDE_LENGHT, MAX_SIDE_LENGHT)
 a.restart()
-b = a.matrix
+matrix = a.matrix
 
-for x in range(len(b)):
-    for y in range(len(b[x])):  
-        print(b[x][y], end=' ')
-    print()
+size = a.size
+
+
+INTERFACE_LINE = 150
+WINDOW_WIDTH = 640
+WINDOW_HEIGHT = WINDOW_WIDTH + INTERFACE_LINE
+
+side = WINDOW_WIDTH // size
+
+sc = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+pygame.display.set_caption(f'Mineswapper, size - {size}')
+pygame.display.set_icon(pygame.image.load('items/flag_cell.png'))
+draw_field(sc ,int(size), side, INTERFACE_LINE)
+
+FPS = 10
+clock = pygame.time.Clock()
+game_won = False
+mouse_X, mouse_Y = 0, 0
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    clock.tick(FPS)
