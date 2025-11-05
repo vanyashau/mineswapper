@@ -131,11 +131,14 @@ class Cell:
         self.__bombs_around += 1
 
     def get_image(self):
-        return pygame.image.load(f'items/mine_near_{self.__bombs_around}.png')
+        if self.type == Cell.TYPE_EMPTY:
+            return pygame.image.load(f'items/mine_near_{self.__bombs_around}.png')
+        elif self.state == Cell.STATE_FLAGGED:
+            return pygame.image.load('items/decoy_mine.png')
+        return pygame.image.load('items/open_mine.png')
 
 
-
-a = Battlefield(MIN_SIDE_LENGHT, MAX_SIDE_LENGHT)
+a = Battlefield()
 a.restart()
 matrix = a.matrix
 
@@ -153,6 +156,7 @@ pygame.display.set_caption(f'Mineswapper, size - {size}')
 pygame.display.set_icon(pygame.image.load('items/flag_cell.png'))
 draw_field(sc ,int(size), side, INTERFACE_LINE)
 
+bombs_to_place = a.bombs_count
 FPS = 10
 clock = pygame.time.Clock()
 game_won = False
@@ -162,4 +166,20 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.MOUSEMOTION:
+            mouse_X, mouse_Y = event.pos
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                X_quad = int(mouse_X) // side
+                Y_quad = (int(mouse_Y) - INTERFACE_LINE) // side - 1
+                matrix[X_quad][Y_quad].open()
+                if matrix[X_quad][Y_quad].type == Cell.TYPE_BOMB:
+                    game_won = True
+                    sc.blit(pygame.transform.scale(pygame.image.load('items/expld_mine.png'),(side, side)), (side * X_quad, side * Y_quad  + INTERFACE_LINE))
+                    for x in range(a.size):
+                        for y in range(a.size):
+                            if x != X_quad or y != Y_quad:
+                                sc.blit(pygame.transform.scale(matrix[x][y].get_image(),(side, side)), (side * x, side * y  + INTERFACE_LINE))
+
+    pygame.display.update()
     clock.tick(FPS)
