@@ -171,7 +171,7 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:
                 X_quad = int(mouse_X) // side
-                Y_quad = (int(mouse_Y) - INTERFACE_LINE) // side - 1
+                Y_quad = (int(mouse_Y) - INTERFACE_LINE) // side
                 matrix[X_quad][Y_quad].open()
                 if matrix[X_quad][Y_quad].type == Cell.TYPE_BOMB:
                     game_won = True
@@ -180,6 +180,38 @@ while running:
                         for y in range(a.size):
                             if x != X_quad or y != Y_quad:
                                 sc.blit(pygame.transform.scale(matrix[x][y].get_image(),(side, side)), (side * x, side * y  + INTERFACE_LINE))
+                if matrix[X_quad][Y_quad].type == Cell.TYPE_EMPTY:
+                    sc.blit(pygame.transform.scale(matrix[X_quad][Y_quad].get_image,(side, side)), (side * X_quad, side * Y_quad  + INTERFACE_LINE))
+                    opener_flag = True
+                    while opener_flag:
+                        opener_count = 0
+                        if matrix[X_quad][Y_quad].bombs_around == 0:
+                            if X_quad - 1 >= 0 and X_quad - 1 <= self.__size - 1 and Y_quad - 1 >= 0 and Y_quad - 1 <= self.__size - 1:
+                                self.__matriX_quad[X_quad-1][Y_quad-1].increase_bomb_around()
+
+                            if X_quad - 1 >= 0 and X_quad - 1 <= self.__size - 1 and Y_quad >= 0 and Y_quad <= self.__size - 1:
+                                self.__matriX_quad[X_quad-1][Y_quad].increase_bomb_around()
+
+                            if X_quad - 1 >= 0 and X_quad - 1 <= self.__size - 1 and Y_quad + 1 >= 0 and Y_quad + 1 <= self.__size - 1:
+                                self.__matriX_quad[X_quad-1][Y_quad+1].increase_bomb_around()
+
+                            if X_quad >= 0 and X_quad <= self.__size - 1 and Y_quad - 1 >= 0 and Y_quad - 1 <= self.__size - 1:
+                                self.__matriX_quad[X_quad][Y_quad-1].increase_bomb_around()
+
+                            if X_quad >= 0 and X_quad <= self.__size - 1 and Y_quad + 1 >= 0 and Y_quad + 1 <= self.__size - 1:
+                                self.__matriX_quad[X_quad][Y_quad+1].increase_bomb_around()
+
+                            if X_quad + 1 >= 0 and X_quad + 1 <= self.__size - 1 and Y_quad - 1 >= 0 and Y_quad - 1 <= self.__size - 1:
+                                self.__matriX_quad[X_quad+1][Y_quad-1].increase_bomb_around()
+
+                            if X_quad + 1 >= 0 and X_quad + 1 <= self.__size - 1 and Y_quad >= 0 and Y_quad <= self.__size - 1:
+                                self.__matriX_quad[X_quad+1][Y_quad].increase_bomb_around()
+                            
+                            if X_quad + 1 >= 0 and X_quad + 1 <= self.__size - 1 and Y_quad + 1 >= 0 and Y_quad + 1 <= self.__size - 1:
+                                self.__matriX_quad[X_quad+1][Y_quad+1].increase_bomb_around()
+                                            
+
+
 
     pygame.display.update()
     clock.tick(FPS)
