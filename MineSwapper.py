@@ -6,6 +6,64 @@ pygame.init()
 MIN_SIDE_LENGHT = 5
 MAX_SIDE_LENGHT = 10
 
+def field_opener(scene ,matrix, size, side, x, y, interface_line, opened_coordinats):
+    cell = matrix[x][y]
+    cell.open()
+    scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+
+    if cell.bombs_around > 0:
+        return
+
+    if x - 1 >= 0 and y - 1 >= 0 and f'{x-1},{y-1}' not in opened_coordinats:
+        cell = matrix[x-1][y-1]
+        opened_coordinats.append(f'{x-1},{y-1}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x-1, y-1, interface_line, opened_coordinats))
+
+    if x - 1 >= 0 and f'{x-1},{y}' not in opened_coordinats:
+        cell = matrix[x-1][y]
+        opened_coordinats.append(f'{x-1},{y}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x-1, y, interface_line, opened_coordinats))
+
+    if x - 1 >= 0 and y + 1 < size and f'{x-1},{y+1}' not in opened_coordinats:
+        cell = matrix[x-1][y+1]
+        opened_coordinats.append(f'{x-1},{y+1}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x-1, y+1, interface_line, opened_coordinats))
+
+    if y - 1 >= 0 and f'{x},{y-1}' not in opened_coordinats:
+        cell = matrix[x][y-1]
+        opened_coordinats.append(f'{x},{y-1}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x, y-1, interface_line, opened_coordinats))
+
+    if y + 1 < size and f'{x},{y+1}' not in opened_coordinats:
+        cell = matrix[x][y+1]
+        opened_coordinats.append(f'{x},{y+1}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x, y+1, interface_line, opened_coordinats))
+
+    if x + 1 < size and y - 1 >= 0 and f'{x+1},{y-1}' not in opened_coordinats:
+        cell = matrix[x+1][y-1]
+        opened_coordinats.append(f'{x+1},{y-1}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x+1, y-1, interface_line, opened_coordinats))
+
+    if x + 1 < size and f'{x+1},{y}' not in opened_coordinats:
+        cell = matrix[x+1][y]
+        opened_coordinats.append(f'{x+1},{y}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x+1, y, interface_line, opened_coordinats))
+
+    if x + 1 < size and y + 1 < size and f'{x+1},{y+1}' not in opened_coordinats:
+        cell = matrix[x+1][y+1]
+        opened_coordinats.append(f'{x+1},{y+1}')
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        opened_coordinats.extend(field_opener(scene ,matrix, size, side, x+1, y+1, interface_line, opened_coordinats))
+    return opened_coordinats
+
+
 def draw_field(scene, size, side, interface_line):
     for x in range(size):
         for y in range(size):
@@ -181,37 +239,6 @@ while running:
                             if x != X_quad or y != Y_quad:
                                 sc.blit(pygame.transform.scale(matrix[x][y].get_image(),(side, side)), (side * x, side * y  + INTERFACE_LINE))
                 if matrix[X_quad][Y_quad].type == Cell.TYPE_EMPTY:
-                    sc.blit(pygame.transform.scale(matrix[X_quad][Y_quad].get_image,(side, side)), (side * X_quad, side * Y_quad  + INTERFACE_LINE))
-                    opener_flag = True
-                    while opener_flag:
-                        opener_count = 0
-                        if matrix[X_quad][Y_quad].bombs_around == 0:
-                            if X_quad - 1 >= 0 and X_quad - 1 <= self.__size - 1 and Y_quad - 1 >= 0 and Y_quad - 1 <= self.__size - 1:
-                                self.__matriX_quad[X_quad-1][Y_quad-1].increase_bomb_around()
-
-                            if X_quad - 1 >= 0 and X_quad - 1 <= self.__size - 1 and Y_quad >= 0 and Y_quad <= self.__size - 1:
-                                self.__matriX_quad[X_quad-1][Y_quad].increase_bomb_around()
-
-                            if X_quad - 1 >= 0 and X_quad - 1 <= self.__size - 1 and Y_quad + 1 >= 0 and Y_quad + 1 <= self.__size - 1:
-                                self.__matriX_quad[X_quad-1][Y_quad+1].increase_bomb_around()
-
-                            if X_quad >= 0 and X_quad <= self.__size - 1 and Y_quad - 1 >= 0 and Y_quad - 1 <= self.__size - 1:
-                                self.__matriX_quad[X_quad][Y_quad-1].increase_bomb_around()
-
-                            if X_quad >= 0 and X_quad <= self.__size - 1 and Y_quad + 1 >= 0 and Y_quad + 1 <= self.__size - 1:
-                                self.__matriX_quad[X_quad][Y_quad+1].increase_bomb_around()
-
-                            if X_quad + 1 >= 0 and X_quad + 1 <= self.__size - 1 and Y_quad - 1 >= 0 and Y_quad - 1 <= self.__size - 1:
-                                self.__matriX_quad[X_quad+1][Y_quad-1].increase_bomb_around()
-
-                            if X_quad + 1 >= 0 and X_quad + 1 <= self.__size - 1 and Y_quad >= 0 and Y_quad <= self.__size - 1:
-                                self.__matriX_quad[X_quad+1][Y_quad].increase_bomb_around()
-                            
-                            if X_quad + 1 >= 0 and X_quad + 1 <= self.__size - 1 and Y_quad + 1 >= 0 and Y_quad + 1 <= self.__size - 1:
-                                self.__matriX_quad[X_quad+1][Y_quad+1].increase_bomb_around()
-                                            
-
-
-
+                    field_opener(sc ,matrix, a.size, side, X_quad, Y_quad, INTERFACE_LINE, [])
     pygame.display.update()
     clock.tick(FPS)
