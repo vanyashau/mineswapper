@@ -17,60 +17,60 @@ def field_opener(scene ,matrix, size, side, x, y, interface_line, opened_coordin
 
     if cell.bombs_around > 0:
         return opened_coordinats
-    
+
 
     if x - 1 >= 0 and y - 1 >= 0 and f'{x-1},{y-1}' not in opened_coordinats:
         cell = matrix[x-1][y-1]
         opened_coordinats.append(f'{x-1},{y-1}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * (x - 1), side * (y - 1) + interface_line))
         fo = field_opener(scene ,matrix, size, side, x-1, y-1, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
     if x - 1 >= 0 and f'{x-1},{y}' not in opened_coordinats:
         cell = matrix[x-1][y]
         opened_coordinats.append(f'{x-1},{y}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * (x - 1), side * y + interface_line))
         fo = field_opener(scene ,matrix, size, side, x-1, y, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
     if x - 1 >= 0 and y + 1 < size and f'{x-1},{y+1}' not in opened_coordinats:
         cell = matrix[x-1][y+1]
         opened_coordinats.append(f'{x-1},{y+1}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * (x - 1), side * (y + 1) + interface_line))
         fo = field_opener(scene ,matrix, size, side, x-1, y+1, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
     if y - 1 >= 0 and f'{x},{y-1}' not in opened_coordinats:
         cell = matrix[x][y-1]
         opened_coordinats.append(f'{x},{y-1}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * (y - 1) + interface_line))
         fo = field_opener(scene ,matrix, size, side, x, y-1, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
     if y + 1 < size and f'{x},{y+1}' not in opened_coordinats:
         cell = matrix[x][y+1]
         opened_coordinats.append(f'{x},{y+1}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * (y + 1) + interface_line))
         fo = field_opener(scene ,matrix, size, side, x, y+1, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
     if x + 1 < size and y - 1 >= 0 and f'{x+1},{y-1}' not in opened_coordinats:
         cell = matrix[x+1][y-1]
         opened_coordinats.append(f'{x+1},{y-1}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * (x + 1), side * (y - 1) + interface_line))
         fo = field_opener(scene ,matrix, size, side, x+1, y-1, interface_line, opened_coordinats)
 
     if x + 1 < size and f'{x+1},{y}' not in opened_coordinats:
         cell = matrix[x+1][y]
         opened_coordinats.append(f'{x+1},{y}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * (x + 1), side * y + interface_line))
         fo = field_opener(scene ,matrix, size, side, x+1, y, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
     if x + 1 < size and y + 1 < size and f'{x+1},{y+1}' not in opened_coordinats:
         cell = matrix[x+1][y+1]
         opened_coordinats.append(f'{x+1},{y+1}')
-        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * x, side * y + interface_line))
+        scene.blit(pygame.transform.scale(cell.get_image(), (side, side)), (side * (x + 1), side * (y + 1) + interface_line))
         fo = field_opener(scene ,matrix, size, side, x+1, y+1, interface_line, opened_coordinats)
         opened_coordinats.extend(fo)
 
