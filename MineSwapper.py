@@ -198,6 +198,9 @@ class Cell:
     def set_flag(self):
         self.__state = Cell.STATE_FLAGGED
 
+    def reset_flag(self):
+        self.__state = Cell.STATE_CLOSED
+
     def increase_bomb_around(self):
         self.__bombs_around += 1
 
@@ -244,14 +247,25 @@ while running:
                 X_quad = int(mouse_X) // side
                 Y_quad = (int(mouse_Y) - INTERFACE_LINE) // side
                 matrix[X_quad][Y_quad].open()
-                if matrix[X_quad][Y_quad].type == Cell.TYPE_BOMB:
-                    game_won = True
-                    sc.blit(pygame.transform.scale(pygame.image.load('items/expld_mine.png'),(side, side)), (side * X_quad, side * Y_quad  + INTERFACE_LINE))
-                    for x in range(a.size):
-                        for y in range(a.size):
-                            if x != X_quad or y != Y_quad:
-                                sc.blit(pygame.transform.scale(matrix[x][y].get_image(),(side, side)), (side * x, side * y  + INTERFACE_LINE))
-                if matrix[X_quad][Y_quad].type == Cell.TYPE_EMPTY:
-                    field_opener(sc ,matrix, a.size, side, X_quad, Y_quad, INTERFACE_LINE, [])
+                if matrix[X_quad][Y_quad].state != Cell.STATE_FLAGGED:
+                    if matrix[X_quad][Y_quad].type == Cell.TYPE_BOMB:
+                        game_won = True
+                        sc.blit(pygame.transform.scale(pygame.image.load('items/expld_mine.png'),(side, side)), (side * X_quad, side * Y_quad  + INTERFACE_LINE))
+                        for x in range(a.size):
+                            for y in range(a.size):
+                                if x != X_quad or y != Y_quad:
+                                    sc.blit(pygame.transform.scale(matrix[x][y].get_image(),(side, side)), (side * x, side * y  + INTERFACE_LINE))
+                    if matrix[X_quad][Y_quad].type == Cell.TYPE_EMPTY:
+                        field_opener(sc ,matrix, a.size, side, X_quad, Y_quad, INTERFACE_LINE, [])
+            if event.button == 3:
+                X_quad = int(mouse_X) // side
+                Y_quad = (int(mouse_Y) - INTERFACE_LINE) // side
+                if matrix[X_quad][Y_quad].state != Cell.STATE_OPENED:
+                    if matrix[X_quad][Y_quad].state == Cell.STATE_CLOSED:
+                        matrix[X_quad][Y_quad].set_flag()
+                        sc.blit(pygame.transform.scale(pygame.image.load('items/flag_cell.png'), (side, side)), (side * X_quad, side * Y_quad + INTERFACE_LINE))
+                    else:
+                        matrix[X_quad][Y_quad].reset_flag()
+                        sc.blit(pygame.transform.scale(pygame.image.load('items/close_cell.png'), (side, side)), (side * X_quad, side * Y_quad + INTERFACE_LINE))             
     pygame.display.update()
     clock.tick(FPS)
